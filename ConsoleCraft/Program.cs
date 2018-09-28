@@ -186,18 +186,19 @@ namespace ConsoleCraft {
 						Convert.ToInt32 ((width / 4) + ((p7 [0] / p7 [2]) * (height / 2))),
 						Convert.ToInt32 ((height / 2) + ((p7 [1] / p7 [2]) * (height / 2)))
 					};
-					drawLine (p00 [0], p00 [1], p01 [0], p01 [1], white);
-					drawLine (p00 [0], p00 [1], p02 [0], p02 [1], white);
-					drawLine (p01 [0], p01 [1], p03 [0], p03 [1], white);
-					drawLine (p02 [0], p02 [1], p03 [0], p03 [1], white);
-					drawLine (p02 [0], p02 [1], p04 [0], p04 [1], white);
-					drawLine (p03 [0], p03 [1], p05 [0], p05 [1], white);
-					drawLine (p04 [0], p04 [1], p05 [0], p05 [1], white);
-					drawLine (p04 [0], p04 [1], p06 [0], p06 [1], white);
-					drawLine (p05 [0], p05 [1], p07 [0], p07 [1], white);
-					drawLine (p06 [0], p06 [1], p07 [0], p07 [1], white);
-					drawLine (p06 [0], p06 [1], p00 [0], p00 [1], white);
-					drawLine (p07 [0], p07 [1], p01 [0], p01 [1], white);
+					char color_dist = dist_color (block_tmp);
+					drawLine (p00 [0], p00 [1], p01 [0], p01 [1], color_dist);
+					drawLine (p00 [0], p00 [1], p02 [0], p02 [1], color_dist);
+					drawLine (p01 [0], p01 [1], p03 [0], p03 [1], color_dist);
+					drawLine (p02 [0], p02 [1], p03 [0], p03 [1], color_dist);
+					drawLine (p02 [0], p02 [1], p04 [0], p04 [1], color_dist);
+					drawLine (p03 [0], p03 [1], p05 [0], p05 [1], color_dist);
+					drawLine (p04 [0], p04 [1], p05 [0], p05 [1], color_dist);
+					drawLine (p04 [0], p04 [1], p06 [0], p06 [1], color_dist);
+					drawLine (p05 [0], p05 [1], p07 [0], p07 [1], color_dist);
+					drawLine (p06 [0], p06 [1], p07 [0], p07 [1], color_dist);
+					drawLine (p06 [0], p06 [1], p00 [0], p00 [1], color_dist);
+					drawLine (p07 [0], p07 [1], p01 [0], p01 [1], color_dist);
 					/*Console.WriteLine (p00 [0].ToString () + " " + p00 [1].ToString ());
 					Console.WriteLine (p01 [0].ToString () + " " + p01 [1].ToString ());
 					Console.WriteLine (p02 [0].ToString () + " " + p02 [1].ToString ());
@@ -211,7 +212,20 @@ namespace ConsoleCraft {
 			}
 			write_fb ();
 			System.Threading.Thread.Sleep (100);
-			//cc_main ();
+		}
+
+		char dist_color(double[] p) {
+			if (p [2] < 3) {
+				return white;
+			} else if (p [2] < 6) {
+				return light_grey;
+			} else if (p [2] < 9) {
+				return middle_grey;
+			} else if (p [2] < 12) {
+				return dark_grey;
+			} else {
+				return black;
+			}
 		}
 
 		void init_fb() {
@@ -224,7 +238,7 @@ namespace ConsoleCraft {
 		}
 
 		void setPixel(int x, int y, char color) {
-			if (y >= 0 && y <= height && (x*2) >= 0 && ((x*2)+1) <= width) {
+			if (y >= 0 && y < height && (x*2) >= 0 && ((x*2)+1) < width) {
 				StringBuilder tmp_fb = new StringBuilder(fb [y]);
 				tmp_fb [2 * x] = color;
 				tmp_fb [(2 * x) + 1] = color;
@@ -232,39 +246,17 @@ namespace ConsoleCraft {
 			}
 		}
 
-		void drawLine(int x1, int y1, int x2, int y2, char color) {
-			if (x1 > x2) {
-				int xTmp = x1;
-				x1 = x2;
-				x2 = xTmp;
-				int yTmp = y1;
-				y1 = y2;
-				y2 = yTmp;
-			}
-			int dx = x2 - x1;
-			int dy = y2 - y1;
-			if (x1 == x2) {
-				if (y1 < y2) {
-					for (int y = y1; y <= y2; y++) {
-						setPixel(x1, y, color);
-					}
-				} else if (y1 == y2) {
-					setPixel(x1, y1, color);
-				} else if (y1 > y2) {
-					for (int y = y2; y <= y1; y++) {
-						setPixel(x1, y, color);
-					}
-				}
-			} else if (dx >= dy) {
-				for (int x = x1; x <= x2; x++) {
-					int y = y1 + (dy * (x - x1) / dx);
-					setPixel(x, y, color);
-				}
-			} else {
-				for (int y = y1; y <= y2; y++) {
-					int x = x1 + (dx * (y - y1) / dy);
-					setPixel(x, y, color);
-				}
+		void drawLine(int x0, int y0, int x1, int y1, char color) {
+			bool running = true;
+			int dx =  Math.Abs(x1-x0), sx = x0<x1 ? 1 : -1;
+			int dy = -Math.Abs(y1-y0), sy = y0<y1 ? 1 : -1;
+			int err = dx+dy, e2;
+			while (running) {
+				setPixel(x0,y0,color);
+				if (x0==x1 && y0==y1) running = false;
+				e2 = 2*err;
+				if (e2 > dy) { err += dy; x0 += sx; }
+				if (e2 < dx) { err += dx; y0 += sy; }
 			}
 		}
 
